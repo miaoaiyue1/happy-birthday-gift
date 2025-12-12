@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐！</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #ff9a9e;
+            --bg-gradient: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            --note-color-1: #fff1f2; /* 浅红 */
+            --note-color-2: #fffbe7; /* 浅黄 */
+            --note-color-3: #e0f7fa; /* 浅蓝 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: linear-gradient(to top, #fad0c4 0%, #ffd1ff 100%);
+            font-family: 'Ma Shan Zheng', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-size: 3.5rem;
+            margin-top: 40px;
+            animation: bounce 2s infinite;
+        }
+
+        /* 便签墙区域 */
+        .memory-wall {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            padding: 40px 20px;
+            max-width: 1200px; /* 稍微放大以便容纳更多便签 */
+        }
+
+        .note {
+            width: 200px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            border-radius: 2px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            font-size: 1.2rem;
+            color: #555;
+            text-align: center;
+        }
+
+        .note:hover {
+            transform: scale(1.1) rotate(0deg) !important;
+            z-index: 10;
+            box-shadow: 10px 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .note::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* 礼物盒子区域 */
+        .gift-container {
+            margin-top: 50px;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+        }
+
+        .gift-box {
+            position: relative;
+            width: 150px;
+            height: 120px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .gift-box:hover {
+            animation: shake 0.5s infinite;
+        }
+
+        /* 盒子本体 */
+        .box-body {
+            width: 150px;
+            height: 100px;
+            background: #ff6b6b;
+            border-radius: 0 0 10px 10px;
+            position: absolute;
+            bottom: 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .box-body::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background: #ffcc00;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 盒子盖子 */
+        .box-lid {
+            width: 170px;
+            height: 40px;
+            background: #ff5252;
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            left: -10px;
+            z-index: 2;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            transition: transform 1s ease-in-out, opacity 1s;
+        }
+
+        .box-lid::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background: #ffcc00;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .box-bow {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            z-index: 1;
+        }
+        
+        .box-bow::before, .box-bow::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 5px solid #ffcc00;
+            border-radius: 50%;
+            top: 0;
+        }
+        .box-bow::before { left: 0; transform: skew(10deg); }
+        .box-bow::after { right: 0; transform: skew(-10deg); }
+
+        /* 打开盒子的动画状态 */
+        .gift-box.open .box-lid {
+            transform: translateY(-100px) rotate(-20deg);
+            opacity: 0;
+        }
+        
+        .gift-box.open .box-bow {
+             display: none;
+        }
+
+        .instruction {
+            margin-top: 20px;
+            color: #666;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* 音乐播放器隐藏 */
+        #audio-player {
+            display: none;
+        }
+
+        /* 动画定义 */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* 手机适配 */
+        @media (max-width: 600px) {
+            h1 { font-size: 2.5rem; }
+            .memory-wall { gap: 15px; }
+            .note { width: 140px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Happy Birthday!</h1>
+
+    <div class="memory-wall">
+        
+        <div class="note" style="background: var(--note-color-1); transform: rotate(-5deg);">
+            <p style="font-size: 1rem; color: #a53d3d; margin-top: 0;">2025.9.19 初遇</p>
+            那天启东江边的晚风很温柔，吹来了你，也吹来了我们的故事。谢谢你，让一切有一个美好的开始。
+        </div>
+
+        <div class="note" style="background: var(--note-color-1); transform: rotate(4deg);">
+            <p style="font-size: 1rem; color: #a53d3d; margin-top: 0;">2025.10.1 漫步</p>
+            也许只是简单地逛公园，但启东的晚风拂过你的发梢。从那一刻起，我的记忆里就多了一份独特而美好的味道。
+        </div>
+
+        <div class="note" style="background: var(--note-color-2); transform: rotate(3deg);">
+            <p style="font-size: 1rem; color: #a53d3d; margin-top: 0;">2025.10.18 心动</p>
+            后座上，那些预演的画面，都不及情不自禁的真实心动。是你，让我鼓起勇气，去靠近爱情。
+        </div>
+
+        <div class="note" style="background: var(--note-color-3); transform: rotate(-3deg);">
+            <p style="font-size: 1rem; color: #a53d3d; margin-top: 0;">2025.10.25 确认</p>
+            重返“启东阿勒泰”，不是为了看风景，而是为了确认，你就是我最想留住的、最美丽的风景。
+        </div>
+
+        <div class="note" style="background: var(--note-color-2); transform: rotate(-4deg);">
+            你值得拥有世间所有的温柔与美好。愿你未来的道路，洒满阳光，始终自由，始终热烈
+        </div>
+
+        <div class="note" style="background: var(--note-color-3); transform: rotate(2deg);">
+            你是我人生的意外之喜。所有的相遇都是礼物。此刻你在这里，就是最好的事。
+        </div>
+
+    </div>
+
+    <div class="gift-container">
+        <div class="gift-box" id="giftBox">
+            <div class="box-bow"></div>
+            <div class="box-lid"></div>
+            <div class="box-body"></div>
+        </div>
+        <p class="instruction">👇 点击盒子，查收你的礼物 👇</p>
+    </div>
+
+    <audio id="audio-player" src="生日快乐—过于安宁.mp3" preload="auto"></audio>
+
+    <script>
+        const giftBox = document.getElementById('giftBox');
+        const audio = document.getElementById('audio-player');
+        const instruction = document.querySelector('.instruction');
+        let isOpened = false;
+
+        giftBox.addEventListener('click', () => {
+            if (isOpened) return; 
+            isOpened = true;
+
+            // 1. 添加打开盒子的CSS类
+            giftBox.classList.add('open');
+            instruction.innerText = "🎵 正在播放：我为你写的生日歌 🎵";
+
+            // 2. 播放音乐
+            audio.play().catch(e => {
+                console.log("播放失败，可能是浏览器策略限制或文件路径不对", e);
+                instruction.innerText = "播放失败，请检查音频文件路径";
+            });
+
+            // 3. 触发彩带特效 (Canvas Confetti)
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                // 随机位置发射彩带
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+            }, 250);
+        });
+    </script>
+</body>
+</html>
